@@ -13,9 +13,9 @@ import (
 func main() {
 	r := gin.Default()
 
-	// CORS — allow Next.js frontend
+	// CORS — allow Next.js dev server and any localhost origin
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001", "http://localhost:3002"},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type"},
 		AllowCredentials: true,

@@ -237,6 +237,14 @@ func validateURL(rawURL string) error {
 }
 
 func isPrivateHost(host string) bool {
+	// Allow these hosts for local demo/testing against Juice Shop
+	demoAllowlist := []string{"host.docker.internal", "localhost", "127.0.0.1"}
+	for _, allowed := range demoAllowlist {
+		if host == allowed {
+			return false
+		}
+	}
+
 	privateHosts := []string{
 		"localhost", "127.", "10.", "192.168.", "172.16.", "172.17.",
 		"172.18.", "172.19.", "172.20.", "172.21.", "172.22.", "172.23.",
