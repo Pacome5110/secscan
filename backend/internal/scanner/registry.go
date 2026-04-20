@@ -48,8 +48,7 @@ func runPorts(target string) ModuleResult {
 }
 
 func runHeaders(target string) ModuleResult {
-	// TODO F04: HTTP security header checks + grade
-	return ModuleResult{Module: "headers", Status: "stub", Summary: "Headers checker not yet implemented (F04)"}
+	return doHeadersScan(target)
 }
 
 func runTLS(target string) ModuleResult {
