@@ -52,26 +52,21 @@ func runHeaders(target string) ModuleResult {
 }
 
 func runTLS(target string) ModuleResult {
-	// TODO F05: TLS version + cipher + cert auditor
-	return ModuleResult{Module: "tls", Status: "stub", Summary: "TLS auditor not yet implemented (F05)"}
+	return doTLSScan(target)
 }
 
 func runFuzz(target string) ModuleResult {
-	// TODO F06: Directory fuzzer + wordlist
-	return ModuleResult{Module: "fuzz", Status: "stub", Summary: "Dir fuzzer not yet implemented (F06)"}
+	return doFuzz(target)
 }
 
 func runXSS(target string) ModuleResult {
-	// TODO F06: XSS payload injection + reflection check
-	return ModuleResult{Module: "xss", Status: "stub", Summary: "XSS scanner not yet implemented (F06)"}
+	return doXSS(target)
 }
 
 func runSQLi(target string) ModuleResult {
-	// TODO F06: Error/boolean/time-based SQLi detection
-	return ModuleResult{Module: "sqli", Status: "stub", Summary: "SQLi scanner not yet implemented (F06)"}
+	return doSQLi(target)
 }
 
 func runCVE(target string) ModuleResult {
-	// TODO F07: Tech detection + NVD/OSV API lookup
-	return ModuleResult{Module: "cve", Status: "stub", Summary: "CVE scanner not yet implemented (F07)"}
+	return doCVE(target)
 }
