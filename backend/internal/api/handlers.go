@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jung-kurt/gofpdf"
 
 	"secscan/internal/scanner"
 )
@@ -21,12 +22,12 @@ type ScanRequest struct {
 
 // ScanJob — stored in memory (replace with DB for production)
 type ScanJob struct {
-	ID        string            `json:"id"`
-	URL       string            `json:"url"`
-	Status    string            `json:"status"` // queued | running | done | error
-	CreatedAt time.Time         `json:"created_at"`
-	Results   map[string]any    `json:"results,omitempty"`
-	Progress  []string          `json:"progress,omitempty"`
+	ID        string         `json:"id"`
+	URL       string         `json:"url"`
+	Status    string         `json:"status"` // queued | running | done | error
+	CreatedAt time.Time      `json:"created_at"`
+	Results   map[string]any `json:"results,omitempty"`
+	Progress  []string       `json:"progress,omitempty"`
 	mu        sync.Mutex
 }
 
@@ -135,9 +136,51 @@ func StreamScanProgress(c *gin.Context) {
 	}
 }
 
-// DownloadReport — GET /api/scan/:id/report.pdf  (stub — PDF in F09)
-func DownloadReport(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "PDF export coming in F09"})
+// DownloadPDF generates and streams a PDF report (F09)
+func DownloadPDF(c *gin.Context) {
+	id := c.Param("id")
+
+	jobsMu.RLock()
+	job, exists := jobs[id]
+	jobsMu.RUnlock()
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Scan not found"})
+		return
+	}
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+	pdf.SetFont("Arial", "B", 16)
+	pdf.Cell(40, 10, "SecScan Security Report")
+	pdf.Ln(12)
+
+	pdf.SetFont("Arial", "", 12)
+	pdf.CellFormat(0, 10, fmt.Sprintf("Target URL: %s", job.URL), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 10, fmt.Sprintf("Scan ID: %s", job.ID), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 10, fmt.Sprintf("Status: %s", job.Status), "", 1, "L", false, 0, "")
+	pdf.Ln(10)
+
+	pdf.SetFont("Arial", "B", 14)
+	pdf.Cell(40, 10, "Module Results:")
+	pdf.Ln(8)
+
+	pdf.SetFont("Arial", "", 12)
+	for mod, res := range job.Results {
+		pdf.SetFont("Arial", "B", 12)
+		pdf.CellFormat(0, 8, fmt.Sprintf("[%s]", mod), "", 1, "L", false, 0, "")
+		
+		pdf.SetFont("Arial", "", 11)
+		pdf.MultiCell(0, 6, fmt.Sprintf("%v", res), "", "L", false)
+		pdf.Ln(4)
+	}
+
+	c.Header("Content-Type", "application/pdf")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=SecScan_%s.pdf", id))
+	err := pdf.Output(c.Writer)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to serialize PDF"})
+	}
 }
 
 // runScan — executes all requested scanner modules concurrently

@@ -32,7 +32,7 @@ func main() {
 		scanGroup.POST("", api.StartScan)
 		scanGroup.GET("/:id", api.GetScanResult)
 		scanGroup.GET("/:id/stream", api.StreamScanProgress)
-		scanGroup.GET("/:id/report.pdf", api.DownloadReport)
+		scanGroup.GET("/:id/report.pdf", api.DownloadPDF)
 	}
 
 	log.Println("SecScan backend running on :8080")

@@ -3,6 +3,7 @@ package scanner
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 	"time"
@@ -34,7 +35,7 @@ func doTLSScan(targetUrl string) ModuleResult {
 		InsecureSkipVerify: true, // We want to inspect the cert even if it's invalid
 	}
 
-	client, err := tls.DialWithDialer(&netDialer(), "tcp", address, conf)
+	client, err := tls.DialWithDialer(netDialer(), "tcp", address, conf)
 	if err != nil {
 		return ModuleResult{
 			Module:  "tls",
