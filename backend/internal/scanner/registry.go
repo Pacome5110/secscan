@@ -44,8 +44,7 @@ func Run(name, target string) ModuleResult {
 // ---------------------------------------------------------------------------
 
 func runPorts(target string) ModuleResult {
-	// TODO F03: goroutine-based TCP connect scan
-	return ModuleResult{Module: "ports", Status: "stub", Summary: "Port scanner not yet implemented (F03)"}
+	return doPortScan(target)
 }
 
 func runHeaders(target string) ModuleResult {
