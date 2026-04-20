@@ -2,6 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+} from "recharts";
 
 type ModuleResult = {
   module: string;
@@ -28,6 +36,14 @@ const STATUS_COLOR: Record<string, string> = {
   queued: "text-slate-400",
   done: "text-green-400",
 };
+
+// Calculate abstract security score based on status
+function getScore(status: string) {
+  if (status === "ok") return 100;
+  if (status === "warn") return 50;
+  if (status === "error") return 10;
+  return 0;
+}
 
 export default function ScanPage() {
   const { id } = useParams<{ id: string }>();
@@ -92,6 +108,13 @@ export default function ScanPage() {
 
   const modules = Object.values(job.results ?? {});
 
+  // Prepare radar chart data
+  const radarData = modules.map((m) => ({
+    subject: m.module.toUpperCase(),
+    score: getScore(m.status),
+    fullMark: 100,
+  }));
+
   return (
     <main className="min-h-screen px-4 py-12 max-w-4xl mx-auto">
       {/* Header */}
@@ -114,6 +137,27 @@ export default function ScanPage() {
           <span className="text-slate-500 text-sm font-mono">#{id}</span>
         </div>
       </div>
+
+      {/* Radar Chart (F09) */}
+      {job.status === "done" && radarData.length > 2 && (
+        <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-8 h-[350px] w-full flex flex-col items-center">
+          <h2 className="text-slate-300 font-semibold mb-2">Güvenlik Skoru Dağılımı</h2>
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+              <PolarGrid stroke="#334155" />
+              <PolarAngleAxis dataKey="subject" tick={{ fill: "#94a3b8", fontSize: 12 }} />
+              <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+              <Radar
+                name="Score"
+                dataKey="score"
+                stroke="#38bdf8"
+                fill="#38bdf8"
+                fillOpacity={0.4}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Live Progress */}
       {progress.length > 0 && job.status !== "done" && (
@@ -152,16 +196,18 @@ export default function ScanPage() {
       {modules.length === 0 && job.status === "running" && (
         <div className="text-center py-16 text-slate-500">
           <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          Modüller çalışıyor…
+          Modüller çalışıyor… (SSE Stream Aktif)
         </div>
       )}
 
-      {/* PDF Download (stub) */}
+      {/* PDF Download (F09) */}
       {job.status === "done" && (
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex justify-end gap-3 border-t border-slate-800 pt-6">
           <a
             href={`/api/scan/${id}/report.pdf`}
-            className="bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors shadow-lg"
           >
             📄 PDF İndir
           </a>
